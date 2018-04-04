@@ -8,12 +8,19 @@
 import { Widget } from 'vs/base/browser/ui/widget';
 import * as dom from 'vs/base/browser/dom';
 import { SimpleInput } from 'vs/extra/contrib/infoPlane/simpleInput';
+import { ValueChangeEvent } from 'vs/extra/contrib/infoPlane/infoPlaneWidget';
 
 export interface IInfoSectionOpts {
 	label: string;
 	className?: string;
 	value?: string;
-	onTrigger?: () => void;
+	onTrigger?: (value: string) => void;
+}
+
+
+export interface InfoSectionOpts {
+	props: Map<string, IReactDocgenProps>;
+	onChangeValue: (event: ValueChangeEvent) => void;
 }
 
 export class InfoSection extends Widget {
@@ -21,10 +28,13 @@ export class InfoSection extends Widget {
 	private _domNode: HTMLElement;
 	private _propList: Array<SimpleInput> = [];
 	private _simpleInputMap: Map<string, SimpleInput> = new Map();
+	private _onChangeValue: (event: ValueChangeEvent) => void;
 
-	constructor(props: Map<string, IReactDocgenProps>) {
+
+	constructor(opts: InfoSectionOpts) {
 		super();
-		this._props = props;
+		this._props = opts.props;
+		this._onChangeValue = opts.onChangeValue;
 		this._domNode = document.createElement('div');
 
 		for (let key in this._props) {
@@ -72,8 +82,17 @@ export class InfoSection extends Widget {
 			id: key,
 			label: key,
 			descript: prop.description,
-			value: prop.defaultValue ? prop.defaultValue.value : ''
+			value: prop.defaultValue ? prop.defaultValue.value : '',
+			onTrigger: e => {
+				console.log('infoSection-ontrigger');
+				console.log(e);
+				this._onChangeValue({
+					value: e,
+					valueRange: prop.textRange
+				});
+			}
 		});
+
 		this._propList.push(simpleInput);
 		this._simpleInputMap.set(key, simpleInput);
 		this._domNode.appendChild(simpleInput.domNode);

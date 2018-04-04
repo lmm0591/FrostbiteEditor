@@ -5,11 +5,22 @@ interface IReactDocgenParse {
 	props: Map<string, IReactDocgenProps>;
 }
 
+type IReactDocgenLoc = {
+	column: number,
+	line: number
+}
+
+type IReactDocgenRange = {
+	start: IReactDocgenLoc,
+	end: IReactDocgenLoc
+}
+
 interface IReactDocgenProps {
 	defaultValue: IReactDocgenPropsDefaultValue;
 	description: string;
 	required: boolean;
-	type: IReactDocgenPropsType
+	type: IReactDocgenPropsType,
+	textRange: IReactDocgenRange,
 }
 
 interface IReactDocgenPropsDefaultValue {

@@ -20,6 +20,9 @@ import { FindReplaceState } from 'vs/editor/contrib/find/findState';
 import { InfoSection } from 'vs/extra/contrib/infoPlane/infoSection';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { IThemeService } from 'vs/platform/theme/common/themeService';
+import { Range } from 'vs/editor/common/core/range';
+import { TextEdit } from 'vs/editor/common/modes';
+import { EditOperation } from 'vs/editor/common/core/editOperation';
 import { parse } from 'react-docgen';
 
 
@@ -27,6 +30,10 @@ const FIND_WIDGET_INITIAL_WIDTH = 300;
 
 const FIND_INPUT_AREA_HEIGHT = 34; // The height of Find Widget when Replace Input is not visible.
 
+export interface ValueChangeEvent {
+	value: string;
+	valueRange: IReactDocgenRange;
+}
 
 export class FindWidgetViewZone implements IViewZone {
 	public afterLineNumber: number;
@@ -89,7 +96,29 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 
 				this._domNode.style.right = `0px`;
 				this._domNode.style.height = `${codeEditor.getLayoutInfo().contentHeight}px`;
-				this._infoSection = new InfoSection(componentInfo.props);
+				this._infoSection = new InfoSection({
+					props: componentInfo.props,
+					onChangeValue: (event: ValueChangeEvent) => {
+						console.log('onChangeValue');
+						let text1: TextEdit = {
+							text: event.value,
+							range: {
+								endColumn: event.valueRange.end.column + 1,
+								endLineNumber: event.valueRange.end.line,
+								startColumn: event.valueRange.start.column + 1,
+								startLineNumber: event.valueRange.start.line
+							}
+						};
+						console.log(text1)
+						let r = [text1].map(edit => EditOperation.replace(Range.lift(edit.range), edit.text));
+						console.log(r);
+						this._codeEditor.executeEdits('react-props', r);
+						// editor.executeEdits('formatEditsCommand', cmd._edits.map(edit => EditOperation.replace(Range.lift(edit.range), edit.text)));
+						// console.log(this._codeEditor.getLineDecorations(1));
+						// debugger
+
+					}
+				});
 				this._domNode.appendChild(this._infoSection.domNode);
 				this._isVisible = true;
 			}

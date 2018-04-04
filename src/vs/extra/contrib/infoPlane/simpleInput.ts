@@ -15,7 +15,7 @@ export interface ISimpleInputOpts {
 	descript?: string;
 	className?: string;
 	value?: string;
-	onTrigger?: () => void;
+	onTrigger?: (e: string) => void;
 }
 
 export class SimpleInput extends Widget {
@@ -52,9 +52,9 @@ export class SimpleInput extends Widget {
 			e.preventDefault();
 		});
 		*/
-
-		this.onkeydown(this._input, e => {
+		this.onchange(this._input, (e: Event) => {
 			console.log(e);
+			this._opts.onTrigger(this._input.value);
 			e.preventDefault();
 		});
 
