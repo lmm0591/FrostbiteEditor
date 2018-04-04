@@ -1,0 +1,42 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* START cover the case that slider is visible on mouseover */
+.monaco-editor .controlLib {
+	background: #333;
+	padding: 10px;
+}
+.monaco-editor .controlLib .component-header{
+	padding: 4px 0;
+	font-size: 18px;
+}
+
+.monaco-editor .controlLib .component-imgage-button{
+	width: 56px;
+	margin: 10px;
+	cursor: pointer;
+}
+
+.monaco-editor .controlLib .component-imgage-button:hover{
+	opacity: 0.5;
+}
+
+.monaco-editor .controlLib .label-name{
+	background-image: url('./images/sprite.png');
+	background-size: contain;
+	margin: 0 auto;
+	width: 40px;
+	height: 40px;
+	display: block;
+}
+.monaco-editor .controlLib .label-description{
+	margin: 8px 0;
+	text-align: center;
+	line-height: 24px;
+	font-size: 12px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}

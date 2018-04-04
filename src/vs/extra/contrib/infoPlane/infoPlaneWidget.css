@@ -1,0 +1,17 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+.monaco-editor .info-plane-widget {
+	overflow-x: hidden;
+	overflow-y: scroll;
+	padding:10px;
+	background-color: #2d2d30;
+	box-shadow: 0 2px 8px #000000;
+	z-index: 1;
+}
+
+.monaco-editor .info-plane-widget>h2{
+	font-size: 12px;
+}
+
