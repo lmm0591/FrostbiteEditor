@@ -20,7 +20,7 @@ interface IReactDocgenProps {
 	description: string;
 	required: boolean;
 	type: IReactDocgenPropsType,
-	textRange: IReactDocgenRange,
+	valueRange: IReactDocgenRange,
 }
 
 interface IReactDocgenPropsDefaultValue {

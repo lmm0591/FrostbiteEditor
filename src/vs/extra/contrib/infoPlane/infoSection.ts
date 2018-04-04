@@ -88,7 +88,7 @@ export class InfoSection extends Widget {
 				console.log(e);
 				this._onChangeValue({
 					value: e,
-					valueRange: prop.textRange
+					valueRange: prop.valueRange
 				});
 			}
 		});
