@@ -5,6 +5,7 @@
 
 'use strict';
 
+import 'vs/css!./infoSection';
 import { Widget } from 'vs/base/browser/ui/widget';
 import * as dom from 'vs/base/browser/dom';
 import { SimpleInput } from 'vs/extra/contrib/infoPlane/simpleInput';
@@ -19,13 +20,15 @@ export interface IInfoSectionOpts {
 
 
 export interface InfoSectionOpts {
+	title: string;
 	props: Map<string, IReactDocgenProps>;
 	onChangeValue: (event: ValueChangeEvent) => void;
 }
 
 export class InfoSection extends Widget {
 	private _props: Map<string, IReactDocgenProps>;
-	private _domNode: HTMLElement;
+	private _domNode: HTMLElement = null;
+	private _domTitleNode: HTMLElement = null;
 	private _propList: Array<SimpleInput> = [];
 	private _simpleInputMap: Map<string, SimpleInput> = new Map();
 	private _onChangeValue: (event: ValueChangeEvent) => void;
@@ -36,7 +39,8 @@ export class InfoSection extends Widget {
 		this._props = opts.props;
 		this._onChangeValue = opts.onChangeValue;
 		this._domNode = document.createElement('div');
-
+		this._domNode.className = 'extra-info-section';
+		this.setTitle(opts.title);
 		for (let key in this._props) {
 			let prop = this._props[key] as IReactDocgenProps;
 			this.addProp(key, prop);
@@ -96,5 +100,14 @@ export class InfoSection extends Widget {
 		this._propList.push(simpleInput);
 		this._simpleInputMap.set(key, simpleInput);
 		this._domNode.appendChild(simpleInput.domNode);
+	}
+
+	setTitle(title: string) {
+		if (this._domTitleNode === null) {
+			this._domTitleNode = document.createElement('div');
+			this._domTitleNode.className = 'extra-info-section-title';
+			this._domNode.appendChild(this._domTitleNode);
+		}
+		this._domTitleNode.innerText = title;
 	}
 }

@@ -6,49 +6,26 @@
 'use strict';
 
 import 'vs/css!./infoPlaneWidget';
-import { KeyCode } from 'vs/base/common/keyCodes';
-import * as dom from 'vs/base/browser/dom';
-import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
 import { IContextViewProvider } from 'vs/base/browser/ui/contextview/contextview';
 import { FindInput } from 'vs/base/browser/ui/findinput/findInput';
 import { InputBox } from 'vs/base/browser/ui/inputbox/inputBox';
 import { Widget } from 'vs/base/browser/ui/widget';
 import { Sash, IHorizontalSashLayoutProvider } from 'vs/base/browser/ui/sash/sash';
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
-import { ICodeEditor, IOverlayWidget, IOverlayWidgetPosition, IViewZone, OverlayWidgetPositionPreference } from 'vs/editor/browser/editorBrowser';
+import { ICodeEditor, IOverlayWidget, IOverlayWidgetPosition, OverlayWidgetPositionPreference } from 'vs/editor/browser/editorBrowser';
 import { FindReplaceState } from 'vs/editor/contrib/find/findState';
 import { InfoSection } from 'vs/extra/contrib/infoPlane/infoSection';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { IThemeService } from 'vs/platform/theme/common/themeService';
-import { Range } from 'vs/editor/common/core/range';
-import { TextEdit } from 'vs/editor/common/modes';
-import { EditOperation } from 'vs/editor/common/core/editOperation';
+import { IIdentifiedSingleEditOperation } from 'vs/editor/common/model';
+import { ValueEditOperation } from 'vs/extra/common/core/valueEditOperation';
 import { parse } from 'react-docgen';
 
-
 const FIND_WIDGET_INITIAL_WIDTH = 300;
-
-const FIND_INPUT_AREA_HEIGHT = 34; // The height of Find Widget when Replace Input is not visible.
 
 export interface ValueChangeEvent {
 	value: string;
 	valueRange: IReactDocgenRange;
-}
-
-export class FindWidgetViewZone implements IViewZone {
-	public afterLineNumber: number;
-	public heightInPx: number;
-	public suppressMouseDown: boolean;
-	public domNode: HTMLElement;
-
-	constructor(afterLineNumber: number) {
-		this.afterLineNumber = afterLineNumber;
-
-		this.heightInPx = FIND_INPUT_AREA_HEIGHT;
-		this.suppressMouseDown = false;
-		this.domNode = document.createElement('div');
-		this.domNode.className = 'dock-find-viewzone';
-	}
 }
 
 export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizontalSashLayoutProvider {
@@ -59,10 +36,7 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 	private _findInput: FindInput;
 	private _replaceInputBox: InputBox;
 	private _infoSection: InfoSection;
-
-
 	private _isVisible: boolean;
-
 
 	constructor(
 		codeEditor: ICodeEditor,
@@ -84,12 +58,13 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 
 		this._codeEditor.onDidChangeModelContent(e => {
 			console.log('onDidChangeModelContent');
-
+			// console.log(this._codeEditor.getValue());
 			var componentInfo = parse(this._codeEditor.getValue());
 			console.log(componentInfo);
 			this._infoSection.updateProps(componentInfo.props);
 		});
 		this._codeEditor.onDidFocusEditor(() => {
+			// console.log(this._codeEditor.getValue());
 			if (this._isVisible === false) {
 				var componentInfo = parse(this._codeEditor.getValue());
 				console.log(componentInfo);
@@ -98,25 +73,10 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 				this._domNode.style.height = `${codeEditor.getLayoutInfo().contentHeight}px`;
 				this._infoSection = new InfoSection({
 					props: componentInfo.props,
+					title: '属性',
 					onChangeValue: (event: ValueChangeEvent) => {
-						console.log('onChangeValue');
-						let text1: TextEdit = {
-							text: event.value,
-							range: {
-								endColumn: event.valueRange.end.column + 1,
-								endLineNumber: event.valueRange.end.line,
-								startColumn: event.valueRange.start.column + 1,
-								startLineNumber: event.valueRange.start.line
-							}
-						};
-						console.log(text1)
-						let r = [text1].map(edit => EditOperation.replace(Range.lift(edit.range), edit.text));
-						console.log(r);
-						this._codeEditor.executeEdits('react-props', r);
-						// editor.executeEdits('formatEditsCommand', cmd._edits.map(edit => EditOperation.replace(Range.lift(edit.range), edit.text)));
-						// console.log(this._codeEditor.getLineDecorations(1));
-						// debugger
-
+						let identifiedSingleEditOperationList: Array<IIdentifiedSingleEditOperation> = ValueEditOperation.textReplace(event);
+						this._codeEditor.executeEdits('react-props', identifiedSingleEditOperationList);
 					}
 				});
 				this._domNode.appendChild(this._infoSection.domNode);
@@ -190,68 +150,4 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 		this._domNode.innerHTML = '<h2>属性库</h2>';
 	}
 
-}
-
-export interface ISimpleButtonOpts {
-	label: string;
-	className: string;
-	onTrigger: () => void;
-	onKeyDown: (e: IKeyboardEvent) => void;
-}
-
-export class SimpleButton extends Widget {
-
-	private _opts: ISimpleButtonOpts;
-	private _domNode: HTMLElement;
-
-	constructor(opts: ISimpleButtonOpts) {
-		super();
-		this._opts = opts;
-
-		this._domNode = document.createElement('div');
-		this._domNode.title = this._opts.label;
-		this._domNode.tabIndex = 0;
-		this._domNode.className = 'button ' + this._opts.className;
-		this._domNode.setAttribute('role', 'button');
-		this._domNode.setAttribute('aria-label', this._opts.label);
-
-		this.onclick(this._domNode, (e) => {
-			this._opts.onTrigger();
-			e.preventDefault();
-		});
-		this.onkeydown(this._domNode, (e) => {
-			if (e.equals(KeyCode.Space) || e.equals(KeyCode.Enter)) {
-				this._opts.onTrigger();
-				e.preventDefault();
-				return;
-			}
-			this._opts.onKeyDown(e);
-		});
-	}
-
-	public get domNode(): HTMLElement {
-		return this._domNode;
-	}
-
-	public isEnabled(): boolean {
-		return (this._domNode.tabIndex >= 0);
-	}
-
-	public focus(): void {
-		this._domNode.focus();
-	}
-
-	public setEnabled(enabled: boolean): void {
-		dom.toggleClass(this._domNode, 'disabled', !enabled);
-		this._domNode.setAttribute('aria-disabled', String(!enabled));
-		this._domNode.tabIndex = enabled ? 0 : -1;
-	}
-
-	public setExpanded(expanded: boolean): void {
-		this._domNode.setAttribute('aria-expanded', String(!!expanded));
-	}
-
-	public toggleClass(className: string, shouldHaveIt: boolean): void {
-		dom.toggleClass(this._domNode, className, shouldHaveIt);
-	}
 }
