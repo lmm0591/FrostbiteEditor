@@ -225,3 +225,19 @@
 .monaco-workbench.linux > .part.editor > .content .welcomePage li.linux-only {
 	display: list-item;
 }
+
+
+.monaco-workbench > .part.editor > .content .welcomePage .commands .createProject {
+	font-size: 1.2em;
+	display: none;
+}
+
+.monaco-workbench > .part.editor > .content .welcomePage .commands .createProject li {
+	line-height: 2.2em;
+	height: 2.2em;
+	margin: 10px 0px;
+}
+
+.monaco-workbench > .part.editor > .content .welcomePage input[type=text] {
+	color: black;
+}

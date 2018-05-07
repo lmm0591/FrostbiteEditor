@@ -1,0 +1,32 @@
+
+.build-view {
+	color: rgba(204, 204, 204, 0.7);
+	padding: 0px 20px;
+}
+
+.build-view a {
+    color: #4080d0;
+}
+
+
+.build-view .build-row {
+	padding: 10px 0px;
+}
+
+.build-view .build-row div{
+	padding: 3px 0px;
+}
+
+.build-view .publish-button-group {
+    margin-top: 20px;
+    text-align: right;
+}
+
+
+.build-view .publish-button-group .monaco-button {
+    width: initial;
+	padding: 0 10px;
+	margin: 0 6px;
+}
+
+

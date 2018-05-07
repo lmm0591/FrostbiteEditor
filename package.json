@@ -25,6 +25,7 @@
   "dependencies": {
     "applicationinsights": "0.18.0",
     "fast-plist": "0.1.2",
+    "fs-extra": "^5.0.0",
     "gc-signals": "^0.0.1",
     "getmac": "1.0.7",
     "graceful-fs": "4.1.11",

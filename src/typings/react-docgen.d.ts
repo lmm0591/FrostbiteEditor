@@ -35,3 +35,7 @@ interface IReactDocgenPropsType {
 declare module "react-docgen" {
 	export function parse(source: string): IReactDocgenParse;
 }
+
+declare module "fs-extra" {
+	export function copy (any: any, any1: any)
+}
