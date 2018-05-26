@@ -24,7 +24,7 @@
 		"vs/css.d.ts",
 		"vs/monaco.d.ts",
 		"vs/nls.d.ts",
-		"typings/react-docgen.d.ts",
+		"typings/react-analysis.d.ts",
 		"vs/editor/*",
 		"vs/base/common/*",
 		"vs/base/browser/*",

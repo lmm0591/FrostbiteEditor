@@ -19,13 +19,17 @@ import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { IThemeService } from 'vs/platform/theme/common/themeService';
 import { IIdentifiedSingleEditOperation } from 'vs/editor/common/model';
 import { ValueEditOperation } from 'vs/extra/common/core/valueEditOperation';
-import { parse } from 'react-docgen';
+import { parse } from 'react-analysis';
 
 const FIND_WIDGET_INITIAL_WIDTH = 300;
 
 export interface ValueChangeEvent {
 	value: string;
 	valueRange: IReactDocgenRange;
+}
+
+function sameLine(startPos, endPos, cursorPos) {
+	return startPos.line === cursorPos.lineNumber && endPos.line === cursorPos.lineNumber
 }
 
 export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizontalSashLayoutProvider {
@@ -63,6 +67,18 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 			console.log(componentInfo);
 			this._infoSection.updateProps(componentInfo.props);
 		});
+		this._codeEditor.onDidChangeCursorPosition(e => {
+			var componentInfo = parse(this._codeEditor.getValue());
+			componentInfo.jsxElements.forEach(jsxElement => {
+				if (sameLine(jsxElement.loc, jsxElement.loc, e.position) && jsxElement.loc.end.column >= e.position.column) {
+
+				} else if (jsxElement.loc.start.line === e.position.lineNumber && jsxElement.loc.start.column <= e.position.column && jsxElement.loc.end.column >= e.position.column) {
+
+				}
+			});
+			console.log(e);
+			console.log(componentInfo);
+		})
 		this._codeEditor.onDidFocusEditor(() => {
 			// console.log(this._codeEditor.getValue());
 			if (this._isVisible === false) {

@@ -3,6 +3,23 @@ interface IReactDocgenParse {
 	displayName: string;
 	methods: Array<Object>;
 	props: Map<string, IReactDocgenProps>;
+	jsxElements: Array<JSXElement>;
+}
+
+declare interface JSXElement {
+	elementName: string;
+	isStaticElement: boolean;
+	importPath: string;
+	type: string;
+	children: Array<JSXElement>;
+	loc: {
+		start: { column: number, line: number },
+		end: { column: number, line: number },
+	};
+	openingElement: {
+	  attributes: Array<Object>;
+	  name: Object;
+	};
 }
 
 type IReactDocgenLoc = {
@@ -32,7 +49,7 @@ interface IReactDocgenPropsType {
 	name: string;
 }
 
-declare module "react-docgen" {
+declare module "react-analysis" {
 	export function parse(source: string): IReactDocgenParse;
 }
 
