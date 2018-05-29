@@ -20,4 +20,8 @@ mac 下使用 [Hyper](https://hyper.is/), 用 Terminal 好像是 VPN 不生效
 
 ## 调试
 
+要安装 debugger for Chrome 插件
+
 `yarn watch`
+
+开 vscode debug
