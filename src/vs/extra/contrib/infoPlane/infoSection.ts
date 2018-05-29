@@ -22,33 +22,42 @@ export interface IInfoSectionOpts {
 export interface InfoSectionOpts {
 	title: string;
 	props: Map<string, IReactDocgenProps>;
-	onChangeValue: (event: ValueChangeEvent) => void;
 }
 
 export class InfoSection extends Widget {
-	private _props: Map<string, IReactDocgenProps>;
+	// private _props: Map<string, IReactDocgenProps> = new Map();
 	private _domNode: HTMLElement = null;
 	private _domTitleNode: HTMLElement = null;
 	private _propList: Array<SimpleInput> = [];
 	private _simpleInputMap: Map<string, SimpleInput> = new Map();
-	private _onChangeValue: (event: ValueChangeEvent) => void;
+	private _jsxElement: JSXElement;
+	public onChangeValue: (event: ValueChangeEvent) => void = () => { };
 
 
-	constructor(opts: InfoSectionOpts) {
+	constructor() {
 		super();
-		this._props = opts.props;
-		this._onChangeValue = opts.onChangeValue;
 		this._domNode = document.createElement('div');
 		this._domNode.className = 'extra-info-section';
-		this.setTitle(opts.title);
-		for (let key in this._props) {
-			let prop = this._props[key] as IReactDocgenProps;
-			this.addProp(key, prop);
-		}
+
+		this._domTitleNode = document.createElement('div');
+		this._domTitleNode.className = 'extra-info-section-title';
+		this._domNode.appendChild(this._domTitleNode);
+	}
+
+	public setJSXElement(jsxElement: JSXElement) {
+		this._jsxElement = jsxElement;
+	}
+
+	public getJSXElement(): JSXElement {
+		return this._jsxElement;
 	}
 
 	public get domNode(): HTMLElement {
 		return this._domNode;
+	}
+
+	public setVisble(isVisble: boolean) {
+		dom.toggleClass(this._domNode, 'none', !isVisble);
 	}
 
 	public isEnabled(): boolean {
@@ -75,9 +84,9 @@ export class InfoSection extends Widget {
 
 	public clearPropAll() {
 		this._simpleInputMap.clear();
-		this._propList = [];
-		while (this._domNode.childElementCount) {
-			this._domNode.children[0].remove();
+		while (this._propList.length) {
+			let prop = this._propList.pop();
+			prop.domNode.remove();
 		}
 	}
 
@@ -90,7 +99,10 @@ export class InfoSection extends Widget {
 			onTrigger: e => {
 				console.log('infoSection-ontrigger');
 				console.log(e);
-				this._onChangeValue({
+				console.log(prop);
+				console.log(key);
+				this.onChangeValue({
+					key,
 					value: e,
 					valueRange: prop.valueRange
 				});
@@ -103,11 +115,7 @@ export class InfoSection extends Widget {
 	}
 
 	setTitle(title: string) {
-		if (this._domTitleNode === null) {
-			this._domTitleNode = document.createElement('div');
-			this._domTitleNode.className = 'extra-info-section-title';
-			this._domNode.appendChild(this._domTitleNode);
-		}
 		this._domTitleNode.innerText = title;
 	}
+
 }
