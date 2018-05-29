@@ -14,9 +14,13 @@ import { FindModelBoundToEditorModel } from 'vs/editor/contrib/find/findModel';
 import { FindReplaceState } from 'vs/editor/contrib/find/findState';
 import { Delayer } from 'vs/base/common/async';
 import { IContextViewService } from 'vs/platform/contextview/browser/contextView';
+import { IFileService } from 'vs/platform/files/common/files';
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { ICodeEditor } from 'vs/editor/browser/editorBrowser';
 import { InfoPlaneWidget } from 'vs/extra/contrib/infoPlane/infoPlaneWidget';
+import { IWorkbenchEditorService } from 'vs/workbench/services/editor/common/editorService';
+// import { IFileService } from 'vs/workbench/services/files/electron-browser/fileService';
+
 import { IThemeService } from 'vs/platform/theme/common/themeService';
 
 export function getSelectionSearchString(editor: ICodeEditor): string {
@@ -72,15 +76,17 @@ export class InfoPlaneController extends Disposable implements editorCommon.IEdi
 		@IContextViewService private readonly _contextViewService: IContextViewService,
 		@IKeybindingService private readonly _keybindingService: IKeybindingService,
 		@IThemeService private readonly _themeService: IThemeService,
+		@IFileService private readonly _fileService: IFileService,
+		@IWorkbenchEditorService private readonly _workbenchEditorService: IWorkbenchEditorService
 	) {
 		super();
 		this._editor = editor;
 		this._updateHistoryDelayer = new Delayer<void>(500);
 		this._currentHistoryNavigator = new HistoryNavigator<string>();
-
 		this._model = null;
+
 		// this._widget = this._register(new InfoPlaneWidget(this._editor, this, this._state, this._contextViewService, this._keybindingService, contextKeyService, this._themeService));
-		this._register(new InfoPlaneWidget(this._editor, this._state, this._contextViewService, this._keybindingService, contextKeyService, this._themeService));
+		this._register(new InfoPlaneWidget(this._editor, this._state, this._contextViewService, this._keybindingService, contextKeyService, this._themeService, this._fileService, this._workbenchEditorService));
 	}
 
 	public dispose(): void {

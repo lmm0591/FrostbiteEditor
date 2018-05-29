@@ -6,6 +6,15 @@ interface IReactDocgenParse {
 	jsxElements: Array<JSXElement>;
 }
 
+declare interface JSXElementAttribute {
+	end: number;
+	loc: any;
+	name: any;
+	start: number;
+	type: string;
+	value: any;
+}
+
 declare interface JSXElement {
 	elementName: string;
 	isStaticElement: boolean;
@@ -17,7 +26,7 @@ declare interface JSXElement {
 		end: { column: number, line: number },
 	};
 	openingElement: {
-	  attributes: Array<Object>;
+	  attributes: Array<JSXElementAttribute>;
 	  name: Object;
 	};
 }
@@ -55,4 +64,12 @@ declare module "react-analysis" {
 
 declare module "fs-extra" {
 	export function copy (any: any, any1: any)
+}
+
+declare module "recast" {
+	export function parse(source: string): any;
+	export function print(ast: any): any;
+	export class types {
+		static builders: any;
+	}
 }
