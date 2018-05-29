@@ -22,7 +22,7 @@ import { IFileService } from 'vs/platform/files/common/files';
 import { IWorkbenchEditorService } from 'vs/workbench/services/editor/common/editorService';
 import { IIdentifiedSingleEditOperation } from 'vs/editor/common/model';
 import { ValueEditOperation } from 'vs/extra/common/core/valueEditOperation';
-import { resolve } from 'path';
+import * as path from 'path';
 // TODO: 最好要暴露 AST 方便重构代码
 import { parse } from 'react-analysis';
 import * as recast from 'recast';
@@ -159,7 +159,11 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 	}
 
 	private buildReferInfoSection(jsxElement: JSXElement) {
-		let importURI = URI.file(resolve(this.workbenchEditorService.getActiveEditorInput().getResource().path, jsxElement.importPath));
+		// 当前打开文件的地址
+		let activeEditorFilePath = path.dirname(this.workbenchEditorService.getActiveEditorInput().getResource().fsPath);
+		let importURI = URI.file(path.resolve(activeEditorFilePath, jsxElement.importPath));
+		console.log('importURI');
+		console.log(importURI);
 		this.fileService.resolveContent(importURI).then(data => {
 			console.log('resolveContent');
 			let innnerComponentInfo = parse(data.value);
