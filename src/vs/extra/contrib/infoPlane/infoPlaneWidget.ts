@@ -5,7 +5,7 @@
 
 'use strict';
 
-import 'vs/css!./infoPlaneWidget';
+import 'vs/css!./styles/infoPlaneWidget';
 import { IContextViewProvider } from 'vs/base/browser/ui/contextview/contextview';
 import { FindInput } from 'vs/base/browser/ui/findinput/findInput';
 import { InputBox } from 'vs/base/browser/ui/inputbox/inputBox';
@@ -15,13 +15,16 @@ import { Sash, IHorizontalSashLayoutProvider } from 'vs/base/browser/ui/sash/sas
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { ICodeEditor, IOverlayWidget, IOverlayWidgetPosition, OverlayWidgetPositionPreference } from 'vs/editor/browser/editorBrowser';
 import { FindReplaceState } from 'vs/editor/contrib/find/findState';
-import { InfoSection } from 'vs/extra/contrib/infoPlane/infoSection';
+import { ComponentSection } from 'vs/extra/contrib/infoPlane/componentSection';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { IThemeService } from 'vs/platform/theme/common/themeService';
 import { IFileService } from 'vs/platform/files/common/files';
 import { IWorkbenchEditorService } from 'vs/workbench/services/editor/common/editorService';
 import { IIdentifiedSingleEditOperation } from 'vs/editor/common/model';
 import { ValueEditOperation } from 'vs/extra/common/core/valueEditOperation';
+import { Position } from 'vs/editor/common/core/position';
+import { ComponentProp } from 'vs/extra/contrib/infoPlane/componentProp';
+import { TextEdit } from 'vs/editor/common/modes';
 import * as path from 'path';
 // TODO: 最好要暴露 AST 方便重构代码
 import { parse } from 'react-analysis';
@@ -33,9 +36,7 @@ const LINE_POS_MAX = 1000000; // 计算位置坐标，先把行乘以足够大�
 export interface ValueChangeEvent {
 	key: string;
 	value: string;
-	valueRange: IReactDocgenRange;
 }
-
 
 export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizontalSashLayoutProvider {
 	private static readonly ID = 'editor.contrib.infoPlaneWidget';
@@ -44,8 +45,8 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 	private _domNode: HTMLElement;
 	private _findInput: FindInput;
 	private _replaceInputBox: InputBox;
-	private _infoSection: InfoSection;
-	private _referComponentInfoSection: InfoSection;
+	private _componentSection: ComponentSection;
+	private _referComponentSection: ComponentSection;
 	private _isVisible: boolean;
 
 	constructor(
@@ -61,47 +62,61 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 		super();
 		this._codeEditor = codeEditor;
 		this._isVisible = false;
-		this._buildDomNode();
+		this.buildDomNode();
 		// 初始当前组件信息
-		this._infoSection = new InfoSection();
-		this._domNode.appendChild(this._infoSection.domNode);
+		this._componentSection = new ComponentSection();
+		this._componentSection.onChangeValue = (event: ValueChangeEvent) => {
+			console.log('onChangeValue');
+			console.log(event);
+			var componentInfo = parse(this._codeEditor.getValue());
+			console.log(componentInfo);
+			let prop = componentInfo.props[event.key];
+			const textEdit: TextEdit = {
+				text: event.value,
+				range: {
+					endColumn: prop.valueRange.end.column + 1,
+					endLineNumber: prop.valueRange.end.line,
+					startColumn: prop.valueRange.start.column + 1,
+					startLineNumber: prop.valueRange.start.line
+				}
+			};
+			let identifiedSingleEditOperationList: Array<IIdentifiedSingleEditOperation> = ValueEditOperation.textReplace(textEdit);
+			this._codeEditor.executeEdits('react-props', identifiedSingleEditOperationList);
+		};
+
+		this._domNode.appendChild(this._componentSection.domNode);
 
 		// 初始引用组件信息
-		this._referComponentInfoSection = new InfoSection();
-		this._domNode.appendChild(this._referComponentInfoSection.domNode);
+		this._referComponentSection = new ComponentSection();
+		this._domNode.appendChild(this._referComponentSection.domNode);
 
-		this._referComponentInfoSection.onChangeValue = (event: ValueChangeEvent) => {
-			console.log('event');
+		this._referComponentSection.onChangeValue = (event: ValueChangeEvent) => {
+			console.log('引用组件修改事件---event');
 			console.log(event);
-			console.log(event.value);
-			let jsxElement = this._referComponentInfoSection.getJSXElement();
+			let jsxElement = this.getInPositionJSXElement(this._codeEditor.getValue(), this._codeEditor.getPosition());
+			console.log(jsxElement);
+
 			let keyIdentifier = recast.types.builders.jsxIdentifier(event.key);
 			let valueLiteral = recast.types.builders.literal(event.value);
-
-			let attributes: Array<JSXElementAttribute> = jsxElement.openingElement.attributes.filter(attribute => attribute.name.name === event.key);
-			console.log(attributes);
-
-			if (attributes.length) {
-				attributes[0] = recast.types.builders.jsxAttribute(attributes[0].name, valueLiteral);
+			let originalJSXElement: JSXElement = jsxElement.original;
+			let attribute: JSXElementAttribute = originalJSXElement.openingElement.attributes.filter(attribute => attribute.name.name === event.key)[0];
+			if (attribute) {
+				attribute.value = valueLiteral;
 			} else {
 				let newJSXElementArrt = recast.types.builders.jsxAttribute(keyIdentifier, valueLiteral);
-				jsxElement.openingElement.attributes.push(newJSXElementArrt);
+				originalJSXElement.openingElement.attributes.push(newJSXElementArrt);
 			}
-			var code = recast.print(jsxElement).code;
-			// let astReferComponent = recast.parse(code);
-			// console.log(astReferComponent);
-
-			let identifiedSingleEditOperationList: Array<IIdentifiedSingleEditOperation> = ValueEditOperation.textReplace({
-				key: event.key,
-				value: code,
-				valueRange: {
-					start: jsxElement.loc.start,
-					end: {
-						line: jsxElement.loc.end.line,
-						column: jsxElement.loc.end.column + event.value.length
-					}
+			var code = recast.print(originalJSXElement).code;
+			const textEdit: TextEdit = {
+				text: code,
+				range: {
+					endColumn: originalJSXElement.loc.end.column + 1,
+					endLineNumber: originalJSXElement.loc.end.line,
+					startColumn: originalJSXElement.loc.start.column + 1,
+					startLineNumber: originalJSXElement.loc.start.line
 				}
-			});
+			};
+			let identifiedSingleEditOperationList: Array<IIdentifiedSingleEditOperation> = ValueEditOperation.textReplace(textEdit);
 			this._codeEditor.executeEdits('react-props', identifiedSingleEditOperationList);
 		};
 
@@ -110,55 +125,61 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 
 		});
 
+		this._codeEditor.onDidChangeCursorPosition(e => {
+			let jsxElement = this.getInPositionJSXElement(this._codeEditor.getValue(), e.position);
+			if (jsxElement) {
+				var attr = this.getOpeningElementAttr(jsxElement);
+				this.buildReferInfoSection(jsxElement, attr);
+				this._referComponentSection.setVisble(true);
+			} else {
+				this._referComponentSection.setVisble(false);
+			}
+		});
+
+
 		this._codeEditor.onDidChangeModelContent(e => {
 			console.log('onDidChangeModelContent');
 			// console.log(this._codeEditor.getValue());
 			var componentInfo = parse(this._codeEditor.getValue());
 			console.log(componentInfo);
-			this._infoSection.updateProps(componentInfo.props);
-		});
-
-		this._codeEditor.onDidChangeCursorPosition(e => {
-			var componentInfo = parse(this._codeEditor.getValue());
-			componentInfo.jsxElements.forEach(jsxElement => {
-				let start = jsxElement.loc.start.line * LINE_POS_MAX + jsxElement.loc.start.column;
-				let end = jsxElement.loc.end.line * LINE_POS_MAX + jsxElement.loc.end.column;
-				let cursorPos = e.position.lineNumber * LINE_POS_MAX + e.position.column;
-				this._referComponentInfoSection.setVisble(false);
-				this._referComponentInfoSection.clearPropAll();
-				// 当前光标在组件范围内
-				if (jsxElement.importPath && start <= cursorPos && end >= cursorPos) {
-					this.buildReferInfoSection(jsxElement);
-					this._referComponentInfoSection.setVisble(true);
-				}
-			});
+			this._componentSection.clearPropAll();
+			for (let key in componentInfo.props) {
+				let prop = componentInfo.props[key];
+				const componentProp = new ComponentProp({
+					label: key,
+					value: prop.defaultValue.value,
+					description: prop.description
+				});
+				this._componentSection.addProp(key,componentProp);
+			}
 		});
 
 		this._codeEditor.onDidFocusEditor(() => {
 			// console.log(this._codeEditor.getValue());
 			if (this._isVisible === false) {
 				var componentInfo = parse(this._codeEditor.getValue());
-				console.log(componentInfo);
 				this._domNode.style.right = `0px`;
 				this._domNode.style.height = `${codeEditor.getLayoutInfo().contentHeight}px`;
 
-				this._infoSection.setTitle('属性');
-				for (const key in componentInfo.props) {
-					const prop = componentInfo.props[key];
-					this._infoSection.addProp(key, prop);
+				this._componentSection.setTitle('属性');
+				console.log(componentInfo);
+				this._componentSection.clearPropAll();
+				for (let key in componentInfo.props) {
+					let prop = componentInfo.props[key];
+					const componentProp = new ComponentProp({
+						label: key,
+						value: prop.defaultValue.value,
+						description: prop.description
+					});
+					this._componentSection.addProp(key, componentProp);
 				}
-
-				this._infoSection.onChangeValue = (event: ValueChangeEvent) => {
-					let identifiedSingleEditOperationList: Array<IIdentifiedSingleEditOperation> = ValueEditOperation.textReplace(event);
-					this._codeEditor.executeEdits('react-props', identifiedSingleEditOperationList);
-				};
-				this._infoSection.setVisble(true);
+				this._componentSection.setVisble(true);
 				this._isVisible = true;
 			}
 		});
 	}
 
-	private buildReferInfoSection(jsxElement: JSXElement) {
+	buildReferInfoSection(jsxElement: JSXElement, initAttributes) {
 		// 当前打开文件的地址
 		let activeEditorFilePath = path.dirname(this.workbenchEditorService.getActiveEditorInput().getResource().fsPath);
 		let importURI = URI.file(path.resolve(activeEditorFilePath, jsxElement.importPath));
@@ -168,14 +189,24 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 			console.log('resolveContent');
 			let innnerComponentInfo = parse(data.value);
 			console.log(innnerComponentInfo);
-			this._referComponentInfoSection.setTitle(`${jsxElement.elementName} 组件信息`);
+			// this._referComponentSection.clearPropAll();
+			this._referComponentSection.setTitle(`${jsxElement.elementName} 组件信息`);
+
+			let initAttributeMap = {};
+			initAttributes.forEach(initAttr => initAttributeMap[initAttr.name] = initAttr.value);
+			let initAttrNames = Object.keys(initAttributeMap);
+
 			for (const key in innnerComponentInfo.props) {
-				const prop = innnerComponentInfo.props[key];
-				this._referComponentInfoSection.addProp(key, prop);
+				let value = '';
+				if (initAttrNames.indexOf(key) >= 0) {
+					value = initAttributeMap[key];
+				} else {
+					let prop = innnerComponentInfo.props[key];
+					value = prop.defaultValue ? prop.defaultValue.value : '';
+				}
+				this._referComponentSection.setProp(key, value);
 			}
-			this._referComponentInfoSection.setJSXElement(jsxElement);
-			// this._referComponentInfoSection.
-			this._referComponentInfoSection.setVisble(true);
+			this._referComponentSection.setVisble(true);
 		});
 	}
 
@@ -233,7 +264,7 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 
 	// ----- initialization
 
-	private _buildDomNode(): void {
+	 buildDomNode(): void {
 		// Widget
 		this._domNode = document.createElement('div');
 		this._domNode.className = 'editor-widget info-plane-widget';
@@ -242,6 +273,39 @@ export class InfoPlaneWidget extends Widget implements IOverlayWidget, IHorizont
 		this._domNode.style.width = `${FIND_WIDGET_INITIAL_WIDTH}px`;
 		this._domNode.style.right = '0px';
 		this._domNode.innerHTML = '<h2>属性库</h2>';
+	}
+
+
+	getOpeningElementAttr(jsxElement: JSXElement) {
+		let elementAttr = [];
+		jsxElement.openingElement.attributes.forEach(element => {
+			var value = element.value.type === 'JSXExpressionContainer' ? element.value.expression.name : element.value.raw
+			elementAttr.push({
+				name: element.name.name,
+				value: value,
+				type: element.value.type
+			});
+		});
+		return elementAttr;
+	}
+
+
+	getInPositionJSXElement (code: string, position: Position): JSXElement {
+		var componentInfo = parse(code);
+		var result = null;
+		componentInfo.jsxElements.some(jsxElement => {
+			let start = jsxElement.loc.start.line * LINE_POS_MAX + jsxElement.loc.start.column;
+			let end = jsxElement.loc.end.line * LINE_POS_MAX + jsxElement.loc.end.column;
+			let cursorPos = position.lineNumber * LINE_POS_MAX + position.column;
+			if (jsxElement.importPath && start <= cursorPos && end >= cursorPos) {
+				console.log('pos');
+				console.log(jsxElement);
+				result = jsxElement;
+				return true;
+			}
+			return false;
+		});
+		return result;
 	}
 
 }

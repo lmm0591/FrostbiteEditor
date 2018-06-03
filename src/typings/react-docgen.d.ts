@@ -29,6 +29,7 @@ declare interface JSXElement {
 	  attributes: Array<JSXElementAttribute>;
 	  name: Object;
 	};
+	original: JSXElement;
 }
 
 type IReactDocgenLoc = {
