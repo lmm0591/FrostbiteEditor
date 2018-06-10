@@ -97,6 +97,9 @@ import { ChoiceChannel } from 'vs/platform/dialogs/common/choiceIpc';
 import { IChoiceService, IConfirmationService } from 'vs/platform/dialogs/common/dialogs';
 import { DialogService } from 'vs/workbench/services/dialogs/electron-browser/dialogs';
 
+import { IFileServiceExtra } from 'vs/extra/platform/files/common/files';
+import { FileServiceExtra } from 'vs/extra/workbench/services/files/electron-browser/fileService';
+
 /**
  * Services that we require for the Shell
  */
@@ -465,6 +468,8 @@ export class WorkbenchShell {
 
 		const localizationsChannel = getDelayedChannel<ILocalizationsChannel>(sharedProcess.then(c => c.getChannel('localizations')));
 		serviceCollection.set(ILocalizationsService, new SyncDescriptor(LocalizationsChannelClient, localizationsChannel));
+
+		serviceCollection.set(IFileServiceExtra, new SyncDescriptor(FileServiceExtra));
 
 		return [instantiationService, serviceCollection];
 	}

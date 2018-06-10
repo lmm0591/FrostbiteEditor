@@ -7,6 +7,7 @@
 import 'vs/css!./welcomePage';
 import URI from 'vs/base/common/uri';
 import * as path from 'path';
+import * as fs from 'fs';
 import * as arrays from 'vs/base/common/arrays';
 import { WalkThroughInput } from 'vs/workbench/parts/welcome/walkThrough/node/walkThroughInput';
 import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
@@ -40,6 +41,7 @@ import { IEditorInputFactory, EditorInput } from 'vs/workbench/common/editor';
 import { getIdAndVersionFromLocalExtensionId } from 'vs/platform/extensionManagement/node/extensionManagementUtil';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 import { IChoiceService } from 'vs/platform/dialogs/common/dialogs';
+import { IFileServiceExtra } from 'vs/extra/platform/files/common/files';
 
 used();
 
@@ -233,6 +235,7 @@ class WelcomePage {
 		@IExtensionManagementService private extensionManagementService: IExtensionManagementService,
 		@IExtensionTipsService private tipsService: IExtensionTipsService,
 		@IExtensionsWorkbenchService private extensionsWorkbenchService: IExtensionsWorkbenchService,
+		@IFileServiceExtra private fileServiceExtra: IFileServiceExtra,
 		@ILifecycleService lifecycleService: ILifecycleService,
 		@ITelemetryService private telemetryService: ITelemetryService
 	) {
@@ -264,10 +267,10 @@ class WelcomePage {
 		if (enabled) {
 			showOnStartup.setAttribute('checked', 'checked');
 		}
+
 		showOnStartup.addEventListener('click', e => {
 			this.configurationService.updateValue(configurationKey, showOnStartup.checked ? 'welcomePage' : 'newUntitledFile', ConfigurationTarget.USER);
 		});
-
 		recentlyOpened.then(({ workspaces }) => {
 			// Filter out the current workspace
 			workspaces = workspaces.filter(workspace => !this.contextService.isCurrentWorkspace(workspace));
@@ -281,15 +284,15 @@ class WelcomePage {
 			workspaces.slice(0, 5).forEach(workspace => {
 				let label: string;
 				let parent: string;
-				let wsPath: string;
+				// let wsPath: string;
 				if (isSingleFolderWorkspaceIdentifier(workspace)) {
 					label = getBaseLabel(workspace);
 					parent = path.dirname(workspace);
-					wsPath = workspace;
+					// wsPath = workspace;
 				} else {
 					label = getWorkspaceLabel(workspace, this.environmentService);
 					parent = path.dirname(workspace.configPath);
-					wsPath = workspace.configPath;
+					// wsPath = workspace.configPath;
 				}
 
 				const li = document.createElement('li');
@@ -309,17 +312,8 @@ class WelcomePage {
 				a.setAttribute('aria-label', localize('welcomePage.openFolderWithPath', "Open folder {0} with path {1}", name, tildifiedParentFolder));
 				a.href = 'javascript:void(0)';
 				a.addEventListener('click', e => {
-					/* __GDPR__
-						"workbenchActionExecuted" : {
-							"id" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" },
-							"from": { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-						}
-					*/
-					this.telemetryService.publicLog('workbenchActionExecuted', {
-						id: 'openRecentFolder',
-						from: telemetryFrom
-					});
-					this.windowsService.openWindow([wsPath], { forceNewWindow: e.ctrlKey || e.metaKey });
+
+					// this.windowsService.openWindow([wsPath], { forceNewWindow: e.ctrlKey || e.metaKey });
 					e.preventDefault();
 					e.stopPropagation();
 				});
@@ -335,6 +329,63 @@ class WelcomePage {
 				ul.insertBefore(li, before);
 			});
 		}).then(null, onUnexpectedError);
+
+		const createProjectInfoEL = <HTMLInputElement>container.querySelector('.section.createProject');
+		const createProjectEl = <HTMLInputElement>container.querySelector('#createProject');
+		const projectDirEl = <HTMLInputElement>container.querySelector('#projectDir');
+		const projectTypeEl = <HTMLInputElement>container.querySelector('#projectType');
+		const projectNameEl = <HTMLInputElement>container.querySelector('#projectName');
+		let projectDir = '';
+
+		// 设置项目目录
+		projectDirEl.addEventListener('click', (e) => {
+			this.windowService.showOpenDialog({
+				title: '选择项目目录',
+				properties: ['openDirectory', 'createDirectory']
+			}).then((data: string[]) => {
+				projectDir = data[0];
+				projectDirEl.innerText = projectDir;
+			});
+
+			e.preventDefault();
+			e.stopPropagation();
+		});
+
+		createProjectEl.addEventListener('click', (e) => {
+			let projectName = projectNameEl.value.trim();
+			if (projectDir && projectName) {
+				let srcDir = path.join(process.cwd(), 'projectTemplate', projectTypeEl.value);
+				let destDir = path.join(projectDir, projectName);
+				// TODO: 如果有同名文件夹要提示
+				this.fileServiceExtra.copyDir(URI.file(srcDir), URI.file(destDir)).then((e) => {
+					const destPackage = path.join(destDir, 'package.json');
+					fs.readFile(destPackage, 'utf8', (err, data) => {
+						try {
+							let packageInfo = JSON.parse(data);
+							packageInfo.name = projectName;
+							fs.writeFile(destPackage, JSON.stringify(packageInfo, null, 4), () => {
+								this.windowsService.openWindow([destDir]);
+							});
+						} catch (error) {
+							this.notificationService.error('模板文件里的 pakcage.json 不是合法的 json 文件');
+						}
+					});
+				});
+			} else {
+				this.notificationService.warn('请输入 “项目名称” 和 "项目目录"');
+			}
+
+			e.preventDefault();
+			e.stopPropagation();
+		});
+
+		const showCreate = <HTMLInputElement>container.querySelector('#showCreate');
+		showCreate.addEventListener('click', e => {
+			createProjectInfoEL.style.display = 'block';
+			e.preventDefault();
+			e.stopPropagation();
+		});
+
 
 		this.addExtensionList(container, '.extensionPackList', extensionPacks, extensionPackStrings);
 		this.addExtensionList(container, '.keymapList', keymapExtensions, keymapStrings);
