@@ -1,4 +1,4 @@
-基于 VSCODE 做的改造
+基于 VS CODE 做的改造
 
 ## MAC 安装
 
