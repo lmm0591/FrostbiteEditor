@@ -1,4 +1,5 @@
 interface IReactDocgenParse {
+	ast: any;
 	description: string;
 	displayName: string;
 	methods: Array<Object>;
@@ -61,6 +62,11 @@ interface IReactDocgenPropsType {
 
 declare module "react-analysis" {
 	export function parse(source: string): IReactDocgenParse;
+	export let operation: {
+		defaultProps: {
+			setDefaultProps (code: IReactDocgenParse, propKey: string, propValue: string) : void;
+		}
+	};
 }
 
 declare module "fs-extra" {
@@ -69,8 +75,9 @@ declare module "fs-extra" {
 
 declare module "recast" {
 	export function parse(source: string): any;
-	export function print(ast: any): any;
+	export function print(ast: any, option?: any ): any;
 	export class types {
 		static builders: any;
+		static NodePath: any;
 	}
 }

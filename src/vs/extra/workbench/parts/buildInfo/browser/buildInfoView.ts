@@ -117,12 +117,10 @@ export class BuildInfoView extends Viewlet implements IViewlet, IPanel {
 		@ITerminalService private terminalService: ITerminalService
 	) {
 		super(VIEW_ID, partService, telemetryService, themeService);
-
 		// this.viewletVisible = Constants.SearchViewVisibleKey.bindTo(contextKeyService);
 		// this.viewletSettings = this.getMemento(storageService, Scope.WORKSPACE);
 		// this.toUnbind.push(this.untitledEditorService.onDidChangeDirty(e => this.onUntitledDidChangeDirty(e)));
 		// this.toUnbind.push(this.contextService.onDidChangeWorkbenchState(() => this.onDidChangeWorkbenchState()));
-
 	}
 
 

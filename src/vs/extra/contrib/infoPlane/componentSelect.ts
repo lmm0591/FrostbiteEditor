@@ -5,7 +5,7 @@
 
 'use strict';
 
-// import 'vs/css!./styles/componentInput';
+import 'vs/css!./styles/componentSelect';
 import { Widget } from 'vs/base/browser/ui/widget';
 import * as dom from 'vs/base/browser/dom';
 
@@ -18,7 +18,7 @@ export class ComponentSelect extends Widget implements IComponentPropValue {
 
 	private _opts: IComponentInputOpts;
 	private _element: HTMLElement;
-	private _input: HTMLInputElement;
+	private _select: HTMLSelectElement;
 
 	public onChange = (e: ComponentPropValueEvent) => {};
 
@@ -27,26 +27,35 @@ export class ComponentSelect extends Widget implements IComponentPropValue {
 		this._opts = opts;
 
 		this._element = document.createElement('div');
-		this._element.className = 'extra-simple-input ' + this._opts.className;
+		this._element.className = 'FE-component-select ' + this._opts.className;
 
-		this._input = document.createElement('input');
-		this._input.className = 'input';
-		this._input.value = opts.value;
+		this._select = document.createElement('select');
+		this._select.value = opts.value;
 
-		this._element.appendChild(this._input);
+		this._element.appendChild(this._select);
 
-		this._input.addEventListener('change', (e: Event) => {
-			this.onChange({ value: this._input.value});
+		this._select.addEventListener('change', (e: Event) => {
+			let select = e.srcElement as HTMLSelectElement;
+			this.onChange({ value: select.value });
 			e.preventDefault();
 		});
 	}
 
 	public setValue(value: string) {
-		this._input.value = value;
+		this._select.value = value;
 	}
 
 	public getValue() {
-		return this._input.value;
+		return this._select.value;
+	}
+
+	public setData(datas: Array<any>) {
+		datas.forEach(({ label, value }) => {
+			let option = document.createElement('option');
+			option.label = label;
+			option.value = value;
+			this._select.add(option);
+		});
 	}
 
 	public get element(): HTMLElement {
@@ -67,9 +76,11 @@ export class ComponentSelect extends Widget implements IComponentPropValue {
 		this._element.tabIndex = enabled ? 0 : -1;
 	}
 
+	/*
 	public setExpanded(expanded: boolean): void {
 		this._element.setAttribute('aria-expanded', String(!!expanded));
 	}
+	*/
 
 	public toggleClass(className: string, shouldHaveIt: boolean): void {
 		dom.toggleClass(this._element, className, shouldHaveIt);

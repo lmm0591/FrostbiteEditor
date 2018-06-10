@@ -27,10 +27,10 @@ export class ComponentInput extends Widget implements IComponentPropValue {
 		this._opts = opts;
 
 		this._element = document.createElement('div');
-		this._element.className = 'extra-simple-input ' + this._opts.className;
+		this._element.className = 'FE-component-input ' + this._opts.className;
 
 		this._input = document.createElement('input');
-		this._input.className = 'input';
+		// this._input.className = '';
 		this._input.value = opts.value;
 
 		this._element.appendChild(this._input);
@@ -47,6 +47,10 @@ export class ComponentInput extends Widget implements IComponentPropValue {
 
 	public getValue() {
 		return this._input.value;
+	}
+
+	setData() {
+		// input 不用设置 data
 	}
 
 	public get element(): HTMLElement {

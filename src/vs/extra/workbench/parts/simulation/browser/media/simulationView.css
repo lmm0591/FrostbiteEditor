@@ -1,0 +1,33 @@
+#workbench\.view\.simulation {
+	background: #fafafa;
+	padding-top: 35px;
+}
+
+.simulation-view{
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    background: url(./phone.png) no-repeat;
+    background-size: 100%;
+    height: 1000px;
+    padding: 100px 16px;
+    box-sizing: border-box;
+    width: 430px;
+    margin: 0 auto;
+}
+
+.simulation-view .simulation-view-webview {
+    width: 375px;
+    height: 667px;
+	border: 0;
+	background: #fff;
+}
+
+/*
+.simulation-view {
+	width: 100%;
+	height: 100%;
+
+}
+*/
+

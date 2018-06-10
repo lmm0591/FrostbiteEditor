@@ -3,34 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .extra-simple-input {
-	width: 100%;
-	min-height: 24px;
-	max-height: 24px;
-	margin: 3px 0;
-	justify-content: flex-start;
-	color: #bdbdbd;
-	flex-direction: row;
-	display: flex;
-	box-sizing: border-box;
-}
-
-.monaco-workbench .extra-simple-input .label {
-	display: flex;
-	margin-right: 5px;
-	flex-shrink: 0;
-	font-size: 1em;
-	width: 25%;
-	min-width: 100px;
-	white-space: nowrap;
-	box-sizing: border-box;
-}
-
-.monaco-workbench .extra-simple-input .input {
+.monaco-workbench .FE-component-input{
 	flex: 1;
+}
+
+.monaco-workbench .FE-component-input input {
 	margin: 0;
+	width: 100%;
 	padding: .2em .6em;
 	display: inline-block;
+	box-sizing: border-box;
 	outline: 0;
 	border-top-left-radius: 3px;
 	border-bottom-left-radius: 3px;

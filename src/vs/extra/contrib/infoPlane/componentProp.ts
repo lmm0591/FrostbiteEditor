@@ -7,6 +7,7 @@
 
 import { Widget } from 'vs/base/browser/ui/widget';
 import { ComponentInput } from 'vs/extra/contrib/infoPlane/componentInput';
+import { ComponentSelect } from 'vs/extra/contrib/infoPlane/componentSelect';
 // import * as dom from 'vs/base/browser/dom';
 
 
@@ -21,12 +22,14 @@ export class ComponentProp extends Widget {
 		super();
 		this._element = document.createElement('div');
 		this._element.tabIndex = 0;
+		this._element.className = 'FE-component-prop';
+
 		this._spanElment = document.createElement('span');
-		this._spanElment.className = 'label';
+		this._spanElment.className = 'FE-component-prop-label';
 		this._spanElment.innerText = opts.label;
 		this._spanElment.title = opts.description;
 
-		this._valueComponent = this.createValueElement(opts.type);
+		this._valueComponent = this.createValueElement(opts.type, opts.data);
 		this._valueComponent.setValue(opts.value);
 
 
@@ -50,12 +53,15 @@ export class ComponentProp extends Widget {
 		this._valueComponent.onChange = _onChange;
 	}
 
-	private createValueElement (valueType: string): IComponentPropValue {
+	private createValueElement (valueType: string, data: any): IComponentPropValue {
 		switch (valueType) {
 			case 'string':
 				return new ComponentInput();
 			case 'enum':
-				return new ComponentInput();
+			case 'bool':
+				let component = new ComponentSelect();
+				component.setData(data);
+				return component;
 			default:
 				return new ComponentInput();
 		}

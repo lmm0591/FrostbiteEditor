@@ -23,10 +23,10 @@ export class ComponentSection extends Widget {
 	constructor() {
 		super();
 		this._element = document.createElement('div');
-		this._element.className = 'extra-info-section';
+		this._element.className = 'FE-component-section';
 
 		this._domTitleNode = document.createElement('div');
-		this._domTitleNode.className = 'extra-info-section-title';
+		this._domTitleNode.className = 'FE-component-section-title';
 		this._element.appendChild(this._domTitleNode);
 	}
 

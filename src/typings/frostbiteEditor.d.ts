@@ -5,6 +5,7 @@ interface ComponentPropValueEvent {
 interface IComponentPropValue {
 	setValue (value: string): void
 	getValue(): string
+	setData(data: any): void
 	element: HTMLElement
 	onChange (event: ComponentPropValueEvent): void
 }
@@ -14,6 +15,7 @@ interface IComponentPropOpts {
 	value?: string;
 	description?: string;
 	type?: string;
+	data?: any;
 	className?: string;
 	// valueRange: any;
 }
