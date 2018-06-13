@@ -43,4 +43,4 @@ import 'vs/editor/contrib/wordHighlighter/wordHighlighter';
 import 'vs/editor/contrib/wordOperations/wordOperations';
 
 
-import 'vs/extra/contrib/infoPlane/infoPlaneController';
+// import 'vs/extra/contrib/infoPlane/infoPlaneController';
