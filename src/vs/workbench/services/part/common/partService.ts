@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 'use strict';
-
+// Frostbite Editor:
 import { TPromise } from 'vs/base/common/winjs.base';
 import { createDecorator, ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
 import Event from 'vs/base/common/event';
@@ -14,7 +14,8 @@ export enum Parts {
 	PANEL_PART,
 	EDITOR_PART,
 	STATUSBAR_PART,
-	TITLEBAR_PART
+	TITLEBAR_PART,
+	COMPONENT_PART
 }
 
 export enum Position {

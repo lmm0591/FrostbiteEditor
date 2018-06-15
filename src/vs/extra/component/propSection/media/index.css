@@ -1,0 +1,41 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.FE-prop-section {
+	margin-bottom: 20px;
+}
+
+.FE-prop-section .FE-prop-section-title {
+	font-size: 12px;
+	border-bottom: 1px solid #696969;
+	margin-bottom: 5px;
+	padding: 10px 10px 10px 4px;
+	color: #ccc;
+	font-weight: bold;
+}
+
+.FE-prop-section.none {
+	display: none;
+}
+
+.FE-prop-section .FE-prop-row {
+	width: 100%;
+	outline: 0;
+	margin: 10px 0;
+	justify-content: flex-start;
+	color: #bdbdbd;
+	flex-direction: row;
+	display: flex;
+	box-sizing: border-box;
+}
+
+.FE-prop-section .FE-prop-row-label {
+	width: 80px;
+	font-size: 14px;
+	line-height: 24px;
+	padding-left: 20px;
+	user-select: none;
+	cursor: default;
+}

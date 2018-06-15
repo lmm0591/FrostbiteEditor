@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
-
+// Frostbite Editor:
 import 'vs/css!./media/workbench';
 
 import { localize } from 'vs/nls';
@@ -31,6 +31,7 @@ import { SidebarPart } from 'vs/workbench/browser/parts/sidebar/sidebarPart';
 import { PanelPart } from 'vs/workbench/browser/parts/panel/panelPart';
 import { StatusbarPart } from 'vs/workbench/browser/parts/statusbar/statusbarPart';
 import { TitlebarPart } from 'vs/workbench/browser/parts/titlebar/titlebarPart';
+import { ComponentPart } from 'vs/extra/workbench/browser/componentPart/componentPart';
 import { WorkbenchLayout } from 'vs/workbench/browser/layout';
 import { IActionBarRegistry, Extensions as ActionBarExtensions } from 'vs/workbench/browser/actions';
 import { PanelRegistry, Extensions as PanelExtensions } from 'vs/workbench/browser/panel';
@@ -61,6 +62,7 @@ import { ITitleService } from 'vs/workbench/services/title/common/titleService';
 import { IWorkbenchEditorService, IResourceInputType, WorkbenchEditorService } from 'vs/workbench/services/editor/common/editorService';
 import { IQuickOpenService } from 'vs/platform/quickOpen/common/quickOpen';
 import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
+import { IComponentPartService } from 'vs/extra/workbench/services/component/common/componentPartService';
 import { ClipboardService } from 'vs/platform/clipboard/electron-browser/clipboardService';
 import { IEditorGroupService } from 'vs/workbench/services/group/common/groupService';
 import { IHistoryService } from 'vs/workbench/services/history/common/history';
@@ -140,7 +142,8 @@ const Identifiers = {
 	SIDEBAR_PART: 'workbench.parts.sidebar',
 	PANEL_PART: 'workbench.parts.panel',
 	EDITOR_PART: 'workbench.parts.editor',
-	STATUSBAR_PART: 'workbench.parts.statusbar'
+	STATUSBAR_PART: 'workbench.parts.statusbar',
+	COMPONENT_PART: 'workbench.parts.componentpart'
 };
 
 function getWorkbenchStateString(state: WorkbenchState): string {
@@ -193,6 +196,7 @@ export class Workbench implements IPartService {
 	private titlebarPart: TitlebarPart;
 	private activitybarPart: ActivitybarPart;
 	private sidebarPart: SidebarPart;
+	private componentPart: ComponentPart;
 	private panelPart: PanelPart;
 	private editorPart: EditorPart;
 	private statusbarPart: StatusbarPart;
@@ -612,6 +616,9 @@ export class Workbench implements IPartService {
 		// Keybinding Editing
 		serviceCollection.set(IKeybindingEditingService, this.instantiationService.createInstance(KeybindingsEditingService));
 
+		this.componentPart = this.instantiationService.createInstance(ComponentPart, Identifiers.COMPONENT_PART);
+		serviceCollection.set(IComponentPartService, this.componentPart);
+
 		// Configuration Resolver
 		serviceCollection.set(IConfigurationResolverService, new SyncDescriptor(ConfigurationResolverService, process.env));
 
@@ -729,6 +736,8 @@ export class Workbench implements IPartService {
 				break;
 			case Parts.STATUSBAR_PART:
 				container = this.statusbarPart.getContainer();
+			case Parts.COMPONENT_PART:
+				container = this.componentPart.getContainer();
 				break;
 		}
 		return container && container.getHTMLElement();
@@ -1148,6 +1157,7 @@ export class Workbench implements IPartService {
 				sidebar: this.sidebarPart,				// Sidebar
 				panel: this.panelPart,					// Panel Part
 				statusbar: this.statusbarPart,			// Statusbar
+				component: this.componentPart			// 属性检查器
 			},
 			this.quickOpen,								// Quickopen
 			this.notificationsCenter,					// Notifications Center
@@ -1189,6 +1199,7 @@ export class Workbench implements IPartService {
 		this.createEditorPart();
 		this.createPanelPart();
 		this.createStatusbarPart();
+		this.createComponentPart();
 
 		// Notification Handlers
 		this.createNotificationsHandlers();
@@ -1259,6 +1270,16 @@ export class Workbench implements IPartService {
 		});
 
 		this.statusbarPart.create(statusbarContainer);
+	}
+
+	private createComponentPart(): void {
+		const componentContainer = $(this.workbench).div({
+			'class': ['part', 'component'],
+			id: Identifiers.COMPONENT_PART,
+			role: 'component'
+		});
+
+		this.componentPart.create(componentContainer);
 	}
 
 	private createNotificationsHandlers(): void {
