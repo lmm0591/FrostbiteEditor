@@ -6,7 +6,7 @@
 'use strict';
 
 import { Widget } from 'vs/base/browser/ui/widget';
-import { ComponentInput } from 'vs/extra/contrib/infoPlane/componentInput';
+import { ComponentInput } from 'vs/extra/component/input/input';
 import { ComponentSelect } from 'vs/extra/contrib/infoPlane/componentSelect';
 // import * as dom from 'vs/base/browser/dom';
 
@@ -53,15 +53,17 @@ export class PropRow extends Widget {
 		this._valueComponent.onChange = _onChange;
 	}
 
-	private createValueElement (valueType: string, data: any): IComponentPropValue {
+	private createValueElement(valueType: string, data: any): IComponentPropValue {
 		switch (valueType) {
 			case 'string':
 				return new ComponentInput();
 			case 'enum':
 			case 'bool':
-				let component = new ComponentSelect();
-				component.setData(data);
-				return component;
+				let componentSelect = new ComponentSelect();
+				componentSelect.setData(data);
+				return componentSelect;
+			case 'number':
+				return new ComponentInput({type: 'number'});
 			default:
 				return new ComponentInput();
 		}
