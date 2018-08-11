@@ -37,6 +37,7 @@ export class ComponentInput extends Widget implements IComponentPropValue {
 		this.element.appendChild(this._input);
 
 		this._input.addEventListener('change', (e: Event) => {
+			console.log('input_change');
 			this.onChange({ value: this._input.value});
 			e.preventDefault();
 		});

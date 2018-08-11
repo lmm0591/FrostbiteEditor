@@ -58,9 +58,6 @@ export class SimulationView extends Viewlet implements IViewlet, IPanel {
 					column: e.data.data.column
 				});
 			}
-
-
-
 		}, false);
 	}
 	public create(parent: Builder): TPromise<void> {

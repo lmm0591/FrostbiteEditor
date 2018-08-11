@@ -73,6 +73,8 @@ export class ComponentPart extends Part implements IComponentPartService {
 	// public static readonly activePanelSettingsKey = 'workbench.componentPart.activepanelid';
 	private selfPropSection: PropSection;
 	private jsxPropSection: PropSection;
+	// TODO: 方法列表待完成
+	// private methodSection : PropSection;
 	private element: HTMLElement;
 	private dimension: Dimension;
 
@@ -135,6 +137,7 @@ export class ComponentPart extends Part implements IComponentPartService {
 
 			editorControl.onDidChangeCursorPosition(event => {
 				console.log('onDidChangeCursorPosition');
+				// TODO: 事件没有释放
 				let code = editorControl.getValue();
 				let jsxElement = this.getInPositionJSXElement(code, event.position);
 				if (jsxElement) {
